@@ -1,0 +1,19 @@
+.pixel-walker { position:fixed; left:0; top:0; width:160px; height:220px; z-index:25; pointer-events:none; will-change:transform; }
+.pixel-walker[hidden] { display:none; }
+.walker-character { display:block; width:160px; height:220px; padding:0; border:0; background:transparent; pointer-events:auto; cursor:grab; touch-action:none; user-select:none; }
+.walker-character:active { cursor:grabbing; }
+.walker-character canvas { pointer-events:none; }
+.walker-character:focus-visible { outline:3px dashed #142332; outline-offset:-8px; border-radius:16px; }
+.walker-thought { position:absolute; bottom:calc(100% - 32px); left:0; width:160px; padding:12px; border:2px solid #142332; border-radius:22px; background:#fffaf0; color:#142332; box-shadow:3px 3px 0 #14233230; font:500 12px/1.5 'DM Mono',monospace; text-align:center; pointer-events:none; }
+.walker-thought::after,.walker-thought span { content:''; position:absolute; background:#fffaf0; border:2px solid #142332; border-radius:50%; }
+.walker-thought::after { bottom:-12px; left:47px; width:12px; height:12px; }
+.walker-thought span { bottom:-23px; left:62px; width:7px; height:7px; }
+.walker-near-top .walker-thought { bottom:auto; top:180px; }
+.walker-near-top .walker-thought::after { bottom:auto; top:-12px; }
+.walker-near-top .walker-thought span { bottom:auto; top:-23px; }
+.walker-controls { position:fixed; right:12px; bottom:12px; z-index:30; display:flex; gap:6px; }
+.walker-controls button { min-height:44px; padding:8px 10px; border:2px solid #142332; background:#ffd45b; color:#142332; box-shadow:2px 2px 0 #142332; font:500 12px 'DM Mono',monospace; cursor:pointer; }
+.walker-controls button:focus-visible { outline:3px solid #142332; outline-offset:3px; }
+.walker-fallback { display:block; padding:16px; background:#fff4d4; color:#142332; }
+@media (max-width:640px) { .walker-controls { right:8px; bottom:8px; } }
+
