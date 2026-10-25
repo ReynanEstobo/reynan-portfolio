@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
-import portrait from './assets/reynan-pixel-portrait.png';
-import laundryPreview from './assets/ic-laundry-ui.png';
-import jamaicaPreview from './assets/jamaica-bday-ui.png';
-import interroPreview from './assets/interropick-ui.png';
-import agotsPreview from './assets/agots-express-ui.png';
+const assetBase = 'https://raw.githubusercontent.com/ReynanEstobo/reynan-portfolio/main';
+const portrait = `${assetBase}/reynan-pixel-portrait.png`;
+const laundryPreview = `${assetBase}/ic-laundry-ui.png`;
+const jamaicaPreview = `${assetBase}/jamaica-bday-ui.png`;
+const interroPreview = `${assetBase}/interropick-ui.png`;
+const agotsPreview = `${assetBase}/agots-express-ui.png`;
 
 const fallbackProfile = { name: 'Reynan Estobo', role: 'AI-driven web developer', location: 'Balayan, Batangas, Philippines', education: 'Fourth-year BSIT student, Batangas State University â€” Balayan Campus', bio: 'I build thoughtful web experiences and practical systems by combining strong development fundamentals with AI-assisted research, iteration, and problem-solving.', email: 'estoboreynan17@gmail.com', schoolEmail: '23-14327@g.batstate-u.edu.ph', github: 'https://github.com/ReynanEstobo', facebook: 'https://web.facebook.com/beysik.111304' };
 const fallbackProjects = [
