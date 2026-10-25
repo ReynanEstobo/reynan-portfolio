@@ -1,0 +1,50 @@
+/* Additional laptop and small-desktop layout tier. */
+h1,h2,h3,p,.project-link a,.quick-view-trigger,.email-link { overflow-wrap:anywhere; }
+.hero-grid,.section-heading,.capability-grid,.about-layout,.contact-layout,.project,.project-body { min-width:0; }
+
+/* Pixel display faces need a smaller scale than body type to avoid forced wraps. */
+h1 { font-size:clamp(2rem,3.7vw,3.7rem); line-height:1.36; }
+h2 { font-size:clamp(1.45rem,2.45vw,2.45rem); line-height:1.42; }
+.project h3 { font-size:clamp(.82rem,1.2vw,1.05rem); line-height:1.62; }
+
+@media (max-width:1100px) {
+  .hero,.work,.capabilities,.about,.contact { padding-left:clamp(1.25rem,5vw,4rem); padding-right:clamp(1.25rem,5vw,4rem); }
+  .hero-grid { grid-template-columns:minmax(0,1fr) minmax(250px,.52fr); gap:2rem; }
+  .section-heading { grid-template-columns:.8fr 1.5fr 1fr; gap:1.4rem; }
+  .capability-grid { gap:3rem; }
+  .project { flex-basis:min(920px,calc(100% - .75rem)); }
+  .project-body { grid-template-columns:minmax(190px,.82fr) minmax(0,1.1fr); column-gap:1.25rem; }
+  .project-link { min-width:128px; }
+  .project h3 { font-size:clamp(.88rem,1.7vw,1.25rem); }
+}
+
+@media (max-width:920px) {
+  .hero-grid,.section-heading,.capability-grid,.about-layout,.contact-layout { grid-template-columns:1fr; }
+  .hero { min-height:auto; }
+  .identity-card { max-width:390px; }
+  .section-heading { gap:1.25rem; }
+  .section-heading .eyebrow { margin-bottom:0; }
+  .project-map-grid { grid-template-columns:1fr 1fr; }
+  .project-map-independent { grid-column:1/-1; }
+  .project { flex-basis:calc(100% - .5rem); grid-template-columns:1fr; }
+  .project-body { grid-template-columns:minmax(210px,.85fr) minmax(0,1.15fr); }
+  .project-link { grid-column:1; grid-row:auto; flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
+  .project-link a,.quick-view-trigger { text-align:left; }
+  .carousel-controls { justify-content:flex-start; }
+  .capability-grid { gap:2rem; }
+}
+
+@media (max-width:640px) {
+  .hero,.work,.capabilities,.about,.contact { padding:3rem 1rem; }
+  .hero-grid,.project-body { grid-template-columns:1fr; }
+  .project-card-preview { grid-column:1; grid-row:auto; min-height:0; }
+  .project-card-preview img { height:auto; min-height:0; aspect-ratio:16/8.5; }
+  .project h3,.project-body>p,.project-body .tags { grid-column:1; }
+  .project-map-grid { grid-template-columns:1fr; }
+  .project-map-independent { grid-template-columns:1fr 1fr; }
+  .hero-footer { gap:.75rem; font-size:.63rem; }
+  .site-header { padding:0 1rem; }
+  nav { gap:.65rem; }
+  nav a { font-size:.68rem; }
+}
+
