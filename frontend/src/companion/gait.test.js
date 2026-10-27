@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sampleFoot, getGaitPose, GAIT_CYCLE, STANCE_FRACTION } from './gait.js';
+import { sampleFoot, getGaitPose, FOOT_CENTERS, GAIT_CYCLE, STANCE_FRACTION } from './gait.js';
 import { createCompanion, commandCompanion, updateCompanion } from './engine.js';
 
 test('a supporting foot stays in the same world position in either travel direction', () => {
@@ -81,4 +81,49 @@ test('rest, airborne poses and reduced motion do not continue cycling feet', () 
   const quiet = getGaitPose({ state: 'walking', walkBlend: 1, vx: 68, gaitDistance: 37 }, { reduced: true });
   assert.equal(quiet.blend, 0);
   assert.deepEqual(quiet.feet.map(({ x, lift }) => [x, lift]), [[0, 0], [0, 0]]);
+});
+
+test('departures, walking and collecting the feet always keep one sole on the ground', () => {
+  for (const direction of [-1, 1]) {
+    for (const fps of [30, 60, 144]) {
+      const m = createCompanion({ width: 1200, height: 800 });
+      m.x = 500; m.direction = direction;
+      // Begin after a previous route, not at the convenient phase-zero fixture.
+      m.gaitDistance = 79;
+      commandCompanion(m, 'come', { x: 556 + direction * 140 });
+      for (let frame = 0; frame < fps * 7; frame += 1) {
+        if (frame === fps * 2) commandCompanion(m, 'wave');
+        updateCompanion(m, 1 / fps, { quiet: true });
+        const { feet } = getGaitPose(m);
+        assert.ok(feet.some(foot => foot.lift < 1e-7), `no floating in ${m.state} at ${m.time}`);
+        if (frame / fps < 0.15) {
+          assert.ok(Math.abs(feet[0].x) < 1e-7, 'the first support foot stays under the hip');
+          assert.ok(Math.abs(feet[1].x) < 1e-7, 'preparation lifts one foot without sliding it');
+        }
+      }
+    }
+  }
+});
+
+test('settling steps do not overlap in any phase or stopping state', () => {
+  for (const state of ['idle', 'stopping', 'turning', 'following']) {
+    for (let distance = 0; distance < GAIT_CYCLE; distance += 0.5) {
+      for (let step = 0; step <= 40; step += 1) {
+        const { feet } = getGaitPose({ state, vx: 0, gaitDistance: distance, walkBlend: step / 40, walkReady: 0 });
+        assert.ok(feet.some(foot => foot.lift < 1e-7), `${state}: at least one supporting foot`);
+      }
+    }
+  }
+});
+
+test('feet retain their front-view order and arms oppose their own leg through a full cycle', () => {
+  for (let distance = 0; distance < GAIT_CYCLE; distance += 0.1) {
+    const { feet, armOffsets } = getGaitPose({ state: 'walking', vx: 46, gaitDistance: distance, walkBlend: 1 });
+    assert.ok(FOOT_CENTERS[0] + feet[0].x + 2 < FOOT_CENTERS[1] + feet[1].x,
+      'ankles must not swap sides and make an X-shaped step');
+    feet.forEach((foot, index) => {
+      assert.ok(foot.x * armOffsets[index] <= 0, 'each arm counters its own leg');
+      assert.ok(Math.abs(armOffsets[index]) < 8);
+    });
+  }
 });

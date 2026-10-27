@@ -5,7 +5,7 @@
  * Call once per animation frame. The engine owns position and behavioural state;
  * this module only poses the character. stateAge is in seconds.
  */
-import { getGaitPose } from './gait.js';
+import { FOOT_CENTERS, getGaitPose } from './gait.js';
 
 const C = Object.freeze({
   ink: '#101c28', hair: '#101921', hairDeep: '#0b1219', hairMid: '#22323e', hairLight: '#344754',
@@ -255,13 +255,13 @@ export function drawCompanion(ctx, model, { reduced = false } = {}) {
   const age = still ? 0 : Math.max(0, Number(model.stateAge) || 0);
   const direction = model.direction < 0 ? -1 : 1;
   const gait = getGaitPose(model, { reduced: still });
-  const moving = ['walking', 'following', 'returning', 'turning'].includes(state) && !still;
+  const moving = ['walking', 'following', 'returning', 'turning', 'stopping'].includes(state) && !still;
   const seated = ['sitting', 'sleeping', 'waking'].includes(state);
   const airborne = ['falling', 'jumping', 'dragging'].includes(state);
   const wave = ['greeting', 'waving'].includes(state);
   const talking = state === 'talking';
   const sleeping = state === 'sleeping';
-  const breath = still ? 0 : round(Math.sin(age * (sleeping ? 1.4 : 1.8)) * 0.7);
+  const breath = still ? 0 : round(Math.sin(age * (sleeping ? 1.4 : 1.8)) * 0.7 * (1 - gait.blend));
   const impact = ['landing', 'reacting', 'hurt'].includes(state) ? Math.max(0, 1 - age / 0.55) : 0;
   const crouch = state === 'anticipating' ? 5 : round(impact * 6);
   const bob = round(gait.bob);
@@ -281,10 +281,10 @@ export function drawCompanion(ctx, model, { reduced = false } = {}) {
   }
 
   const [leftFoot, rightFoot] = gait.feet;
-  let leftAnkle = [45 + leftFoot.x, 143 - leftFoot.lift];
-  let rightAnkle = [65 + rightFoot.x, 143 - rightFoot.lift];
-  let leftKnee = walkingKnee([center - 8, hipY - 3], leftAnkle, [45, 124 + crouch / 2], gait.blend);
-  let rightKnee = walkingKnee([center + 8, hipY - 3], rightAnkle, [64, 124 + crouch / 2], gait.blend);
+  let leftAnkle = [FOOT_CENTERS[0] + leftFoot.x, 143 - leftFoot.lift];
+  let rightAnkle = [FOOT_CENTERS[1] + rightFoot.x, 143 - rightFoot.lift];
+  let leftKnee = walkingKnee([center - 8, hipY - 3], leftAnkle, [44, 124 + crouch / 2], gait.blend);
+  let rightKnee = walkingKnee([center + 8, hipY - 3], rightAnkle, [67, 124 + crouch / 2], gait.blend);
   if (seated) {
     leftKnee = [34, 129]; rightKnee = [77, 129];
     leftAnkle = [33, 143]; rightAnkle = [79, 143];
@@ -301,10 +301,11 @@ export function drawCompanion(ctx, model, { reduced = false } = {}) {
   leg(ctx, [center + 8, hipY - 3], rightKnee, rightAnkle, 1, false, rightFoot.lift > 1);
   const leftShoulder = [center - 18 + gait.turn * 3, shoulderY + 7];
   const rightShoulder = [center + 17 - gait.turn * 3, shoulderY + 7];
-  let leftElbow = [center - 21 - gait.armSwing * 0.5, shoulderY + 24];
-  let leftWrist = [center - 22 - gait.armSwing, shoulderY + 37 - Math.abs(gait.armSwing) * 0.25];
-  let rightElbow = [center + 21 + gait.armSwing * 0.5, shoulderY + 24];
-  let rightWrist = [center + 21 + gait.armSwing, shoulderY + 37 - Math.abs(gait.armSwing) * 0.25];
+  const [leftSwing, rightSwing] = gait.armOffsets;
+  let leftElbow = [center - 21 + leftSwing * 0.5, shoulderY + 24];
+  let leftWrist = [center - 22 + leftSwing, shoulderY + 37 - Math.abs(leftSwing) * 0.25];
+  let rightElbow = [center + 21 + rightSwing * 0.5, shoulderY + 24];
+  let rightWrist = [center + 21 + rightSwing, shoulderY + 37 - Math.abs(rightSwing) * 0.25];
   let openLeft = false;
   let openRight = false;
   if (wave) {

@@ -39,6 +39,8 @@ Walking takes place near the viewport's bottom edge, without adding visible grou
 
 Walks favor nearby and medium-distance destinations, with occasional longer trips. The figure commits to a route, shifts weight before starting, accelerates gradually, and brakes into the destination without backtracking. A direction change finishes braking and settles the feet before pivoting. Ground travel drives alternating planted feet and lifted swing steps; knees bend, arms counter-swing, and the head looks toward the route. Dragging and falls do not advance the walking cycle. Starts and stops blend into the resting pose.
 
+Each departure starts from a consistent foot position, with one supporting sole on the ground. Finishing steps happen one at a time, and each arm follows the opposite motion of its own leg. Clicking or requesting a stationary activity during a walk first brakes and settles the feet before playing the new pose. Normal rendering follows each animation frame so the figure's position and leg pose stay synchronized; reduced-motion rendering remains throttled.
+
 The first autonomous activity starts within 1–3 seconds. Between activities, the figure takes short 2–6-second pauses, with longer rests when sitting. He wanders to varied destinations across the viewport, waves, does small hops, talks with gestures, stretches, checks his phone, and takes snack or sitting breaks. Recent activities and destinations are avoided to prevent obvious loops.
 
 Autonomous thoughts are scheduled every 14–24 seconds of active simulation time. An activity such as waving, talking, or snacking can prompt a thought earlier, but never less than 14 seconds after the previous line. Dragging, airborne movement, and recent interaction can delay it. Lines match the current activity and may include Reynan's supplied facts, such as his love of cooking and favorite food, sinigang. Recent lines are avoided. The simulation and thought timer stop when the tab is hidden or the companion is paused, hidden, or obscured by a project quick view. Talking means text bubbles and animated gestures; no audio plays.
@@ -69,7 +71,10 @@ Run from the repository root:
 ```powershell
 node --test frontend/src/companion/*.test.js
 npm run build
+node frontend/scripts/render-walking-preview.mjs
 ```
+
+The last command renders the actual sprite into a PNG contact sheet in the system temporary directory, with no browser or extra dependencies. An optional output path can be passed as its last argument. Rows show departure, right walking, left walking, and stopping to wave; columns advance through each sequence.
 
 The companion tests cover simulated walking/jumping at 30, 60, and 144 Hz; drag cancellation and velocity limits; collision settling; resizing; state priorities; reduced-motion behavior; deterministic sprite rendering; and contextual thought variation, facts, and cooldowns. Tests also preserve the reusable engine and dialogue APIs that are not exposed in the current UI. `npm test` runs both the existing backend tests and the companion tests. Passing these checks does not replace browser, touch-device, visual, or screen-reader verification.
 
@@ -85,6 +90,6 @@ Manual QA checklist:
 
 This checklist describes checks to perform for the simplified floating version; it is not a claim that every browser/device case has been verified.
 
-Latest local verification (2026-10-27): all 60 tests passed (59 frontend companion tests and one backend test), and the production build passed. Walking regressions cover exact arrivals without overshoot, stationary direction changes, route commitment, and planted-foot world positions during acceleration and braking at 30, 60, and 144 Hz. Existing seeded simulations cover varied activities, destinations, and speech timing. The updated walk was inspected in the local Chrome portfolio, including successive walking frames and keyboard movement; no console warnings or errors were reported. The floating layout had also been checked at desktop and narrow mobile sizes. Physical-phone touch and assistive-technology checks remain manual follow-up items.
+Latest local verification (2026-10-27): all 67 tests passed (66 frontend companion tests and one backend test), and the production build passed. Regressions cover grounded starts and stops, non-overlapping finishing steps, ankle ordering, arm/leg opposition, and completing a stop before a greeting, sitting pose, or jump. Existing tests cover exact arrivals, turns, drag physics, reduced motion, and foot contact at 30, 60, and 144 Hz. A 32-frame contact sheet of the actual renderer was inspected for departure, both walking directions, and stopping to wave. The earlier build had been checked in Chrome, but a fresh browser check of this revision was unavailable after the browser connection ended. Physical-phone touch and assistive-technology checks remain manual follow-up items.
 
 The character is a stylized 2D interpretation, not a photorealistic likeness or a 3D model. Sunglasses deliberately conceal eye details that the reference does not reveal. There is no action menu, chat interface, speech audio, generative AI service, arbitrary DOM climbing, or cross-device memory in this version.

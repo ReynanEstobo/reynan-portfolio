@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { drawCompanion } from './sprite.js';
 
 const STATES = [
-  'idle', 'observing', 'walking', 'following', 'turning', 'greeting', 'waving',
+  'idle', 'observing', 'walking', 'following', 'turning', 'stopping', 'greeting', 'waving',
   'talking', 'thinking', 'reacting', 'dragging', 'anticipating', 'jumping',
   'falling', 'landing', 'sitting', 'sleeping', 'waking', 'returning',
   'snacking', 'phone', 'stretching',

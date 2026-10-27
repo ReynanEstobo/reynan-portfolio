@@ -142,7 +142,9 @@ export default function PixelWalker({ profile, projects, obscured = false }) {
         visibleText.current.textContent = line.text.slice(0, line.revealed);
         if (line.elapsed > line.duration) dismissThought();
       }
-      if (now - lastDraw >= (opt.reduced ? 150 : 1000 / 30)) { draw(); lastDraw = now; }
+      // Keep position and pose on the same display frame. A 30 Hz threshold on
+      // a 60 Hz RAF loop can miss its deadline and visibly stutter at 20 Hz.
+      if (!opt.reduced || now - lastDraw >= 150) { draw(); lastDraw = now; }
       frame = requestAnimationFrame(tick);
     };
     const stop = () => { cancelAnimationFrame(frame); frame = 0; previous = 0; };

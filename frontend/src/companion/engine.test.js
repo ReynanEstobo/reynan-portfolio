@@ -124,6 +124,101 @@ test('an autonomous route stays committed when the pointer moves', () => {
   }
 });
 
+test('pose commands brake and settle before replacing the walking pose', () => {
+  const poses = { greet: 'greeting', wave: 'waving', talk: 'talking', think: 'thinking',
+    sit: 'sitting', snack: 'snacking', phone: 'phone', stretch: 'stretching', jump: 'anticipating' };
+  for (const direction of [-1, 1]) {
+    for (const [action, pose] of Object.entries(poses)) {
+      const m = create();
+      m.x = 450;
+      m.direction = direction;
+      commandCompanion(m, 'come', { x: m.x + 56 + direction * 350 });
+      run(m, 1, 120, { quiet: true });
+      assert.equal(Math.abs(m.vx), 68);
+      commandCompanion(m, action);
+      assert.equal(m.state, 'stopping', `${action} must first finish the walk`);
+      let started = false;
+      for (let frame = 0; frame < 180; frame += 1) {
+        updateCompanion(m, 1 / 120, { quiet: true });
+        if (m.state === pose) {
+          assert.equal(m.vx, 0, `${pose} must not slide`);
+          assert.equal(m.walkBlend, 0, `${pose} starts with the feet settled`);
+          started = true;
+          break;
+        }
+        assert.equal(m.state, 'stopping');
+      }
+      assert.ok(started, `${pose} must eventually execute`);
+      const stoppedX = m.x;
+      run(m, 0.15, 120, { quiet: true });
+      assert.equal(m.x, stoppedX, `${pose} remains still`);
+    }
+  }
+});
+
+test('the latest reaction replaces the queued pose, and a new route cancels it', () => {
+  const m = create();
+  commandCompanion(m, 'come', { x: 300 });
+  run(m, 1, 120, { quiet: true });
+  commandCompanion(m, 'wave');
+  run(m, 0.1, 120, { quiet: true });
+  commandCompanion(m, 'sit');
+  run(m, 1, 120, { quiet: true });
+  assert.equal(m.state, 'sitting');
+  assert.equal(m.queuedCommand, null);
+  assert.equal(m.recentActions.at(-1), 'sit');
+
+  commandCompanion(m, 'come', { x: 300 });
+  run(m, 1, 120, { quiet: true });
+  commandCompanion(m, 'wave');
+  assert.equal(m.state, 'stopping');
+  commandCompanion(m, 'come', { x: 850 });
+  assert.equal(m.queuedCommand, null);
+  for (let frame = 0; frame < 600; frame += 1) {
+    updateCompanion(m, 1 / 120, { quiet: true });
+    assert.notEqual(m.state, 'waving');
+  }
+});
+
+test('a queued stop respects pause and reduced motion, and dragging cancels it', () => {
+  for (const interrupt of ['paused', 'reduced', 'drag']) {
+    const m = create();
+    commandCompanion(m, 'come', { x: 300 });
+    run(m, 1, 120, { quiet: true });
+    commandCompanion(m, 'wave');
+    if (interrupt === 'paused') {
+      const before = [m.x, m.vx, m.walkBlend, m.stateAge];
+      run(m, 2, 120, { paused: true });
+      assert.deepEqual([m.x, m.vx, m.walkBlend, m.stateAge], before);
+      run(m, 1, 120, { quiet: true });
+      assert.equal(m.state, 'waving');
+    } else if (interrupt === 'reduced') {
+      const x = m.x;
+      updateCompanion(m, 1 / 120, { reduced: true });
+      assert.equal(m.state, 'waving');
+      assert.equal(m.x, x);
+      assert.equal(m.vx, 0);
+    } else {
+      beginDrag(m, { x: m.x, y: m.y, time: 0 });
+      assert.equal(m.state, 'dragging');
+      assert.equal(m.queuedCommand, null);
+      endDrag(m, { time: 500, cancel: true });
+      run(m, 2, 120, { quiet: true });
+      assert.equal(m.state, 'idle');
+    }
+  }
+});
+
+test('a stationary follower releases its walking blend instead of holding a raised foot', () => {
+  const m = create();
+  commandCompanion(m, 'follow', { x: 350, y: 120 });
+  run(m, 15);
+  assert.equal(m.state, 'following');
+  assert.equal(m.vx, 0);
+  assert.equal(m.walkReady, 0);
+  assert.equal(m.walkBlend, 0);
+});
+
 test('a direction change slows and turns before walking the other way', () => {
   const m = create();
   m.x = 400;

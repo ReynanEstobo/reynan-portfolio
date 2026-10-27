@@ -15,7 +15,7 @@ const WALK_BRAKING = 225;
 const WALK_ANTICIPATION = 0.18;
 const TURN_DURATION = 0.26;
 const AIR = new Set(['anticipating', 'jumping', 'falling', 'landing']);
-const MOVING = new Set(['walking', 'following', 'returning', 'turning']);
+const MOVING = new Set(['walking', 'following', 'returning', 'turning', 'stopping']);
 const DURATION = {
   greeting: 1.6, waving: 1.8, talking: 2.8, thinking: 2.4,
   observing: 3.4, snacking: 4.6, phone: 5.8, stretching: 3.1,
@@ -73,7 +73,7 @@ export function createCompanion({ width = 1024, height = 768, groundY, roamMinX:
     familiarity: clamp(familiarity, 0, 100), distance: 0, lookX: 0, lookY: 0,
     time: 0, accumulator: 0, decisionAt: 0, targetX: null, followTarget: null,
     following: false, turnNext: null, turnDirection: null, turnProgress: 0, queuedCommand: null, drag: null,
-    gaitDistance: 0, walkBlend: 0, acceleration: 0, walkReady: 0, lastWalkDirection: -1,
+    gaitDistance: 0, gaitOrigin: 0, walkBlend: 0, acceleration: 0, walkReady: 0, lastWalkDirection: -1,
     recentActions: [], recentDestinations: [], cooldowns: {}, interactions: 0, dizzyFor: 0,
     impact: 0, landingKind: 'gentle', bounces: 0, autoAction: false,
     pendingEvents: [], restUntil: 0, homeX: 0,
@@ -132,6 +132,23 @@ export function commandCompanion(m, action, target = {}) {
     m.queuedCommand = { action, target };
     return true;
   }
+  // A greeting or sitting pose must not replace stepping legs while momentum
+  // is still carrying the character. Finish the stop, then perform the latest
+  // requested pose. Dragging and new walking commands can still interrupt it.
+  const needsStillFeet = Object.hasOwn(COMMAND_STATES, action) || action === 'jump';
+  if (needsStillFeet && (Math.abs(m.vx) > 0.01 || m.walkBlend > 0.01)) {
+    m.queuedCommand = { action, target };
+    m.autoAction = false;
+    m.following = false;
+    m.targetX = null;
+    m.turnNext = null;
+    m.turnDirection = null;
+    m.turnProgress = 0;
+    m.walkReady = 0;
+    if (m.state !== 'stopping') enter(m, 'stopping');
+    return true;
+  }
+  m.queuedCommand = null;
   m.interactions += 1;
   m.familiarity = clamp(m.familiarity + 0.12, 0, 100);
   m.attention = 1;
@@ -307,7 +324,14 @@ function groundedMovement(m, dt, options) {
   if (options.menuOpen && m.following) { m.vx = 0; return; }
   const previousVelocity = m.vx;
   let arrivalX = null;
-  if (m.state === 'turning') {
+  if (m.state === 'stopping') {
+    m.walkReady = 0;
+    m.vx = approach(m.vx, 0, WALK_BRAKING * dt);
+    if (m.vx === 0 && m.walkBlend === 0) {
+      idle(m);
+      return;
+    }
+  } else if (m.state === 'turning') {
     // Finish braking in the old direction, then pivot with both feet down.
     // Facing must never flip while momentum still carries him the other way.
     m.vx = approach(m.vx, 0, WALK_BRAKING * dt);
@@ -348,6 +372,7 @@ function groundedMovement(m, dt, options) {
         enter(m, 'turning');
         m.vx = approach(m.vx, 0, WALK_BRAKING * dt);
       } else {
+        if (m.walkReady === 0 && m.vx === 0 && m.walkBlend === 0) m.gaitOrigin = m.gaitDistance;
         m.walkReady = Math.min(1, m.walkReady + dt / WALK_ANTICIPATION);
         const speed = m.autoAction ? 46 : m.state === 'following' ? 54 : 68;
         const remaining = Math.max(0, Math.abs(delta) - stoppingDistance);
