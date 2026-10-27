@@ -6,4 +6,3 @@ async function request(path, options) {
   return body;
 }
 export const api = { profile: () => request('/api/profile'), projects: () => request('/api/projects'), contact: (data) => request('/api/contact', { method: 'POST', body: JSON.stringify(data) }) };
-

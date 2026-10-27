@@ -88,4 +88,3 @@ The frontend has fallback content, so a visible homepage alone does not prove th
 If email is not configured, messages can still be stored, but no email notification is sent.
 
 Hosting references: https://render.com/docs/deploy-node-express-app and https://vercel.com/docs/frameworks/frontend/vite
-

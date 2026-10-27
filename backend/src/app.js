@@ -52,7 +52,7 @@ export function createApp({ dbQuery = query, sendEmail } = {}) {
           await resend.emails.send({ from: process.env.EMAIL_FROM || 'Portfolio <onboarding@resend.dev>', to: [process.env.CONTACT_RECIPIENT || fallbackProfile.email], replyTo: email, subject: `[Portfolio] ${subject}`, text: `From: ${name} <${email}>\n\n${message}` });
         }
       } catch (emailError) { console.error('Email notification failed:', emailError.message); }
-      res.status(201).json({ id: rows[0].id, message: 'Thanks â€” your message has been sent.' });
+      res.status(201).json({ id: rows[0].id, message: 'Thanks — your message has been sent.' });
     } catch (error) { next(error); }
   });
   app.use((error, _req, res, _next) => {
@@ -61,4 +61,3 @@ export function createApp({ dbQuery = query, sendEmail } = {}) {
   });
   return app;
 }
-

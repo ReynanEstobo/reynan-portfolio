@@ -8,4 +8,3 @@ SET stack = CASE slug
   WHEN 'agots-backend' THEN ARRAY['Node.js', 'Express', 'MongoDB', 'Socket.IO']
 END
 WHERE slug IN ('ic-laundry', 'etl-pipeline', 'jamaica-bday', 'interro-pick', 'agots-frontend', 'agots-backend');
-

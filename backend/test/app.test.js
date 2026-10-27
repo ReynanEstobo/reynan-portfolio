@@ -26,4 +26,3 @@ test('serves portfolio data and validates contact messages', async () => {
   assert.equal(good.status, 201);
   await new Promise((resolve) => instance.close(resolve));
 });
-
